@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://user.github.io/project/",
+  "homepage": "https://Spsanta.github.io/e-cook/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
