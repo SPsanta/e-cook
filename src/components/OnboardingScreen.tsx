@@ -13,6 +13,8 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [frequency, setFrequency] = useState<number>(50);
   const [budget, setBudget] = useState<[number, number]>([500, 2000]);
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const cuisines = [
     { emoji: '🍣', name: 'Японская', value: 'japanese' },
@@ -35,13 +37,20 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
 
   const handleNext = () => {
     if (step === 0) {
-      // Валидация номера телефона
-      const cleaned = phone.replace(/\D/g, "");
-      if (cleaned.length < 10) {
-        setPhoneError("Введите корректный номер телефона");
-        return;
+      let hasError = false;
+      if (!name.trim()) {
+        setNameError("Введите имя клиента");
+        hasError = true;
+      } else {
+        setNameError("");
       }
-      setPhoneError("");
+      if (phone.length < 10) {
+        setPhoneError("Введите корректный номер телефона");
+        hasError = true;
+      } else {
+        setPhoneError("");
+      }
+      if (hasError) return;
     }
     if (step < 3) {
       setStep(step + 1);
@@ -50,7 +59,8 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
         cuisines: selectedCuisines,
         frequency,
         budget,
-        phone: phone.replace(/\D/g, ""),
+        phone: '+7' + phone,
+        name,
       });
     }
   };
@@ -58,18 +68,43 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
   const steps = [
     {
       title: 'Регистрация',
-      subtitle: 'Введите номер телефона для регистрации',
+      subtitle: 'Введите номер телефона и имя для регистрации',
       content: (
-        <div className="mt-8">
-          <input
-            type="tel"
-            placeholder="+7 (___) ___-__-__"
-            value={phone}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
-            className="w-full p-4 rounded-2xl border-2 border-orange-300 focus:border-orange-500 outline-none text-lg shadow-lg"
-            maxLength={16}
-          />
-          {phoneError && <div className="text-red-600 mt-2 text-sm">{phoneError}</div>}
+        <div className="mt-8 space-y-4">
+          <label className="block">
+            <span className="text-white font-medium">Имя</span>
+            <input
+              type="text"
+              placeholder="Ваше имя"
+              aria-label="Имя клиента"
+              title="Имя клиента"
+              value={name}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+              className={`w-full p-4 rounded-2xl border-2 focus:border-orange-500 outline-none text-lg shadow-lg ${nameError ? 'border-red-500' : 'border-orange-300'}`}
+              maxLength={32}
+            />
+            {nameError && <div className="text-red-600 mt-2 text-sm">{nameError}</div>}
+          </label>
+          <label className="block">
+            <span className="text-white font-medium">Телефон</span>
+            <div className="flex">
+              <span className="p-4 rounded-l-2xl border-2 border-orange-300 bg-gray-100 text-lg select-none">+7</span>
+              <input
+                type="tel"
+                placeholder="(___) ___-__-__"
+                aria-label="Телефон"
+                title="Телефон"
+                value={phone}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                className={`w-full p-4 rounded-r-2xl border-2 border-l-0 focus:border-orange-500 outline-none text-lg shadow-lg ${phoneError ? 'border-red-500' : 'border-orange-300'}`}
+                maxLength={10}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="tel"
+              />
+            </div>
+            {phoneError && <div className="text-red-600 mt-2 text-sm">{phoneError}</div>}
+          </label>
         </div>
       ),
     },
@@ -101,14 +136,20 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
       content: (
         <div className="mt-8">
           <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={frequency}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setFrequency(Number(e.target.value))}
-              className="w-full h-3 bg-gradient-to-r from-orange-200 to-orange-500 rounded-lg appearance-none cursor-pointer"
-            />
+            <label className="block mb-2">
+              <span className="text-orange-600 font-medium">Частота заказов</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={frequency}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setFrequency(Number(e.target.value))}
+                className="w-full h-3 bg-gradient-to-r from-orange-200 to-orange-500 rounded-lg appearance-none cursor-pointer"
+                title="Частота заказов"
+                placeholder="Частота заказов"
+                aria-label="Частота заказов"
+              />
+            </label>
             <div className="flex justify-between mt-4 text-sm text-gray-600">
               <span>Редко</span>
               <span className="font-semibold text-orange-600">
@@ -136,22 +177,34 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
                 </span>
               </div>
               <div className="flex space-x-4">
-                <input
-                  type="range"
-                  min="100"
-                  max="5000"
-                  value={budget[0]}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setBudget([Number(e.target.value), budget[1]])}
-                  className="flex-1 h-3 bg-gradient-to-r from-orange-200 to-orange-500 rounded-lg appearance-none cursor-pointer"
-                />
-                <input
-                  type="range"
-                  min="100"
-                  max="5000"
-                  value={budget[1]}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setBudget([budget[0], Number(e.target.value)])}
-                  className="flex-1 h-3 bg-gradient-to-r from-orange-200 to-orange-500 rounded-lg appearance-none cursor-pointer"
-                />
+                <label className="flex-1">
+                  <span className="text-orange-600 font-medium">Минимальный бюджет</span>
+                  <input
+                    type="range"
+                    min="100"
+                    max="5000"
+                    value={budget[0]}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setBudget([Number(e.target.value), budget[1]])}
+                    className="flex-1 h-3 bg-gradient-to-r from-orange-200 to-orange-500 rounded-lg appearance-none cursor-pointer"
+                    title="Минимальный бюджет"
+                    placeholder="Минимальный бюджет"
+                    aria-label="Минимальный бюджет"
+                  />
+                </label>
+                <label className="flex-1">
+                  <span className="text-orange-600 font-medium">Максимальный бюджет</span>
+                  <input
+                    type="range"
+                    min="100"
+                    max="5000"
+                    value={budget[1]}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setBudget([budget[0], Number(e.target.value)])}
+                    className="flex-1 h-3 bg-gradient-to-r from-orange-200 to-orange-500 rounded-lg appearance-none cursor-pointer"
+                    title="Максимальный бюджет"
+                    placeholder="Максимальный бюджет"
+                    aria-label="Максимальный бюджет"
+                  />
+                </label>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4 text-center">
@@ -212,7 +265,7 @@ export const OnboardingScreen: FC<OnboardingScreenProps> = ({ onComplete }) => {
         {/* Button */}
         <button
           onClick={handleNext}
-          disabled={step === 0 && phone.length < 10}
+          disabled={step === 0 && (phone.length < 10 || !name.trim())}
           className="w-full bg-white text-orange-500 font-bold py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none shadow-lg"
         >
           <span>{step === 3 ? 'Начать готовить!' : 'Далее'}</span>

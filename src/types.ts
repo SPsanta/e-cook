@@ -3,6 +3,7 @@ export interface UserPreferences {
   frequency: number;
   budget: [number, number];
   phone: string; // Добавлено для регистрации по номеру телефона
+  name: string; // Имя клиента
 }
 
 export interface Dish {
